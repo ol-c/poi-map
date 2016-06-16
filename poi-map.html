@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Point of Interest Map Example</title>
+  </head>
+  <body>
+    <style>
+      .state
+      {
+        fill : #AAAAAA;
+      }
+      .point-of-interest
+      {
+        fill : white;
+        stroke : black;
+      }
+    </style>
+    <script src="d3.js"></script>   
+    <script src="topojson.js"></script>    
+    <script src="us_geo_data.js"></script>
+    <script src="us_zipcode_to_lat_long.js"></script>
+
+    <script>
+      function chooseRandom(list, number) {
+        number = number?number:1;
+        list = list.concat([]);
+        var chosen = [];
+        for (var i=0; i<number; i++) {
+          var randomIndex = Math.floor(Math.random()*list.length);
+          chosen.push(list.splice(randomIndex, 1)[0])
+        }
+        return chosen;
+      }
+      function poiMap(projection, features, poi) {
+            usDataURL = "us.json";
+
+        var path = d3.geo.path()
+            .projection(projection);
+
+        var svg = d3.select("body").append("svg")
+            .attr("width", "100%")
+            .attr("height", "100%")
+            .attr("viewBox", "0 0 " + width + " " + height);
+
+        var featureLayer = svg.append('g');
+        var poiLayer = svg.append('g');
+
+        featureLayer.append("g")
+            .attr("class", "states")
+          .selectAll("path")
+            .data(features)
+          .enter().append("path")
+            .attr("class", "state")
+            .attr("stroke-width", 1)
+            .attr("stroke", "white")
+            .attr("d", path);
+
+        poiLayer.append("g")
+            .attr("class", "points-of-interest")
+          .selectAll("circle")
+            .data(poi)
+          .enter().append("circle")
+            .attr("class", "point-of-interest")
+            .attr("cx", function (d) { return projection(d)[0]})
+            .attr("cy", function (d) { return projection(d)[1];})
+            .attr("r", function (d) {return 8});
+      }
+
+      var height = 500;
+      var width  = 900;
+
+      var projection = d3.geo.albersUsa();
+
+      var poi = chooseRandom(d3.values(US_ZIPCODE_TO_LAT_LONG), 100);
+      var features = topojson.feature(US_GEO_DATA, US_GEO_DATA.objects.states).features;
+      var map = poiMap(projection, features, poi);
+    </script>
+  </body>
+</html>
